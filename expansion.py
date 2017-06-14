@@ -352,7 +352,8 @@ class PatentLandscapeExpander:
                 AND abstract_lang.language = 'en'
                 AND claims_lang.language = 'en'
                 AND description_lang.language = 'en'
-            GROUP BY p.publication_number, p.family_id, p.priority_date, title.text
+            GROUP BY p.publication_number, p.family_id, p.priority_date, title.text,
+                        abstract.text, claims.text, description.text
             ;
         '''.format(tmp_table)
 
