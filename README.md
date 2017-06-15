@@ -4,7 +4,8 @@ A note about the purpose of this repository. TODO(feltenberger,aabood)
 
 ## Creating a Patent Landscape
 
-The figure 1 shows the high level flow to create a patent landscape. We'll walk through each of these in turn in the notebook below.
+The figure 1 shows the high level flow to create a patent landscape. We'll walk through each of these in turn in the accompanying Jupyter Notebook.
+
 ![Fig 1. High Level Flow of Automated Patent Landscaping](figs/flow.png)
 
 ## Requirements
