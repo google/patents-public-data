@@ -1,6 +1,12 @@
 # Purpose
 A note about the purpose of this repository. TODO(feltenberger,aabood)
 
+
+## Creating a Patent Landscape
+
+The figure 1 shows the high level flow to create a patent landscape. We'll walk through each of these in turn in the notebook below.
+![Fig 1. High Level Flow of Automated Patent Landscaping](figs/flow.png)
+
 ## Requirements
 Before we get started, you should install some requirements for running this notebook. We rely on TensorFlow and Google's Cloud infrastructure such as BigQuery, where we pull public patent data, and that needs to be installed and authorized. You need a few basics before continuing:
 * Anaconda
