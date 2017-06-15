@@ -9,10 +9,10 @@ The figure 1 shows the high level flow to create a patent landscape. We'll walk 
 ![Fig 1. High Level Flow of Automated Patent Landscaping](figs/flow.png)
 
 ## Requirements
-Before we get started, you should install some requirements for running this notebook. We rely on TensorFlow and Google's Cloud infrastructure such as BigQuery, where we pull public patent data, and that needs to be installed and authorized. You need a few basics before continuing:
+Before we get started, you should install some requirements for running this notebook. We rely on TensorFlow, Keras, and Google's Cloud infrastructure such as BigQuery, where we pull public patent data, and that needs to be installed and authorized. You need a few basics before continuing:
 * Anaconda
 * Jupyter Notebooks
-* TensorFlow
+* TensorFlow and Keras
 * Google Cloud SDK
 * BigQuery Python Client
 * A few Python utilities
@@ -35,13 +35,18 @@ conda config --add channels conda-forge
 conda install jupyter ipython nb_conda=2.2.0
 ```
 
-### TensorFlow
+### TensorFlow and Keras
 
 TensorFlow will work 'out of the box' with just your CPU. Since we're going to be building a model using neural networks, however, I highly recommend using GPU acceleration - training will be at least an order of magnitude faster with a modern GPU. You'll need to follow the TensorFlow instructions found [here](https://www.tensorflow.org/install/) for your platform. There are several steps to getting your GPU working for Deep Learning, so pay careful attention to the instructions. Note that only Nvidia chipset-based GPUs will work with TensorFlow.
 
 To skip all the GPU acceleration and just get started, you can just run this command within your active conda environment:
 ```
 pip install tensorflow
+```
+
+Keras is an excellent high level Deep Learning library that we'll use to build our models:
+```
+conda install keras
 ```
 
 Also install tflearn, the high-level library on top of TensorFlow:
