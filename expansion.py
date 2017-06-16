@@ -328,8 +328,10 @@ class PatentLandscapeExpander:
                 p.priority_date,
                 title.text as title_text,
                 abstract.text as abstract_text,
-                SUBSTR(claims.text, 0, 5000) as claims_text,
-                SUBSTR(description.text, 0, 5000) as description_text,
+                'unused' as claims_text,
+                --SUBSTR(claims.text, 0, 5000) as claims_text,
+                'unused' as description_text,
+                --SUBSTR(description.text, 0, 5000) as description_text,
                 STRING_AGG(citations.publication_number) AS refs,
                 STRING_AGG(cpcs.code) AS cpcs
             FROM

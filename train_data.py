@@ -84,7 +84,7 @@ class LandscapeTrainingData:
             words.append(self.w2v_runtime.index_to_word[word_int])
         return ' '.join(words)
 
-    def randomize(self, percent_train):
+    def randomize_and_split(self, percent_train):
         training_data_to_shuffle = list(
             zip(
                 self.prepped_embedding_train,
@@ -111,19 +111,19 @@ class LandscapeTrainingData:
 
         self.trainY = np.array(label_arr[:train_idx])
         self.testY = np.array(label_arr[train_idx:])
-    
+
     def prepare_training_data(
-        self, series_text_to_embed, percent_train, refs_vocab_size, cpc_vocab_size):
+        self, labels_series, series_text_to_embed, refs_series, cpc_series, percent_train, refs_vocab_size, cpc_vocab_size):
 
         self.series_text_to_embed = series_text_to_embed
         self.prepped_embedding_train = self.text_series_to_embeddings(self.series_text_to_embed)
-        self.prepped_labels = self.label_series_to_index(self.training_df.ExpansionLevel)
+        self.prepped_labels = self.label_series_to_index(labels_series)
         self.refs_tokenizer, self.refs_one_hot = \
-            self.tokenizer.tokenize_to_onehot_matrix(self.training_df.refs, refs_vocab_size)
+            self.tokenizer.tokenize_to_onehot_matrix(refs_series, refs_vocab_size)
         self.cpc_tokenizer, self.cpc_one_hot = \
-            self.tokenizer.tokenize_to_onehot_matrix(self.training_df.cpcs, cpc_vocab_size)
+            self.tokenizer.tokenize_to_onehot_matrix(cpc_series, cpc_vocab_size)
 
-        self.randomize(percent_train)
+        self.randomize_and_split(percent_train)
 
         print('Train (embed) data shapes: train: {}, train labels shape: {}'.format(
             self.trainEmbedX.shape, self.trainY.shape))
@@ -147,3 +147,26 @@ class LandscapeTrainingData:
         print('Training data ready.')
 
         return self
+
+    def prep_for_inference(
+        self, series_text_to_embed, refs_series, cpc_series):
+
+        prepped_embedding = self.text_series_to_embeddings(series_text_to_embed)
+
+        _, refs_one_hot = \
+            self.tokenizer.tokenize_to_onehot_matrix(refs_series, None, self.refs_tokenizer)
+        _, cpc_one_hot = \
+            self.tokenizer.tokenize_to_onehot_matrix(cpc_series, None, self.cpc_tokenizer)
+
+        prepped_embedding = np.array(prepped_embedding)
+        refs_one_hot = np.array(refs_one_hot)
+        cpc_one_hot = np.array(cpc_one_hot)
+
+        doc_lengths = list(map(len, self.trainEmbedX))
+        sequence_len = np.max(doc_lengths)
+
+        padded_embed = sequence.pad_sequences(
+            prepped_embedding, maxlen=sequence_len, padding='pre', truncating='post')
+
+        return padded_embed, refs_one_hot, cpc_one_hot
+        
