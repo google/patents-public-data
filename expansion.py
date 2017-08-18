@@ -1,7 +1,9 @@
 from google.cloud import storage
 from pandas.io import gbq
 import pandas as pd
+import pickle
 import re
+import os
 
 class PatentLandscapeExpander:
     seed_file = None
@@ -436,3 +438,30 @@ class PatentLandscapeExpander:
         return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents
         
 
+    def load_from_disk_or_do_expansion(self, seed_file, seed_name):
+
+        seed_data_path = os.path.join('data', seed_name)
+        landscape_data_path = os.path.join(seed_data_path, 'landscape_data.pkl')
+
+        if not os.path.exists(landscape_data_path):
+            if not os.path.exists(seed_data_path):
+                os.makedirs(seed_data_path)
+
+            print('Loading landscape data from BigQuery.')
+            training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
+                self.derive_training_data_from_seeds(seed_file)
+
+            print('Saving landscape data to {}.'.format(landscape_data_path))
+            with open(landscape_data_path, 'wb') as outfile:
+                pickle.dump(
+                    (training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents),
+                    outfile)
+        else:
+            print('Loading landscape data from filesystem at {}'.format(landscape_data_path))
+            with open(landscape_data_path, 'rb') as infile:
+
+                landscape_data_deserialized = pickle.load(infile)
+
+                training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
+                    landscape_data_deserialized
+        return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents

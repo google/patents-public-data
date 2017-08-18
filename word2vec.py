@@ -17,6 +17,73 @@ from scipy.spatial import distance
 # single graph (thus preventing other TF graphs from utilizing GPU)
 GPU_MEM_CONFIG = tf.ConfigProto(gpu_options={'allow_growth': True})
 
+class W2VModelDownload:
+    def __init__(self):
+        # no-op
+        self.nothing=''
+
+    def download_w2v_model(self, landscape_bucket, model_name):
+        from google.cloud import storage
+
+        """
+        Download a pre-trained Word2Vec model.
+        :param models_url: The URL where models are stored
+        :param model_name: The name of the model to download
+        """
+
+        checkpoint_list_file = os.path.join('models', model_name, 'checkpoints', 'checkpoint')
+        if os.path.exists(checkpoint_list_file):
+            print('Model {} already exists. Using local copy.'.format(model_name))
+            return
+
+        client = storage.Client()
+        bucket = client.get_bucket('patent_landscapes')
+        blob = bucket.blob(checkpoint_list_file)
+        checkpoints = blob.download_as_string(client=client).decode()
+        checkpoint_file = 'n/a'
+
+        for checkpoint in checkpoints.split('\n'):
+            if checkpoint.startswith('model_checkpoint_path'):
+                checkpoint_file = checkpoint.split(': ')[1].replace('"', '')
+                break
+
+        blobs_list = bucket.list_blobs(prefix=os.path.join('models', model_name, 'checkpoints', checkpoint_file))
+        checkpoints_files = []
+        for blob_item in blobs_list:
+            checkpoints_files.append(blob_item.name)
+
+        if checkpoint_file == 'n/a':
+            raise ValueError('Unable to find checkpoint for model {}!'.format(model_name))
+
+        checkpoint_path = os.path.join('checkpoints', checkpoint_file)
+
+        model_base_local_path = os.path.join('models', model_name)
+        local_dirs = ['checkpoints', 'vocab']
+        files = checkpoints_files + [
+            os.path.join('models', model_name, 'train_words.pkl'),
+            os.path.join('models', model_name, 'checkpoints/checkpoint'),
+            os.path.join('models', model_name, 'vocab/config.csv'),
+            os.path.join('models', model_name, 'vocab/vocab.csv'),
+        ]
+
+        for storage_dir in local_dirs:
+            local_model_storage_dir = os.path.join(model_base_local_path, storage_dir)
+            if not os.path.exists(local_model_storage_dir):
+                os.makedirs(local_model_storage_dir)
+
+        for file_path in files:
+            #file_path = os.path.join('models', model_name, file)
+            if os.path.exists(file_path):
+                print('Not downloading {}; already exists'.format(file_path))
+                continue
+
+            blob_file = bucket.blob(file_path)
+            print('Downloading {}'.format(file_path))
+            blob_file.download_to_filename(file_path)
+
+        print('Completed downloading {} files'.format(model_name))
+    
+
 class TrainedW2VRuntime:
     w2v_graph = None
     index_to_word = None
@@ -233,14 +300,6 @@ class Word2Vec:
         # generate the set of words to use for training data, taking into account the
         # probabilities generated for each word
         train_words = [int_word for int_word in int_words if (int_word_probs[int_word] < random.random())]
-
-        #word = 'add'
-        #int_word = vocab_to_int[word]
-        #print("frequency of {}: {}".format(word, freqs[int_word]))
-        #keep_prob = prob_keep(subsample_threshold, int_word, freqs)
-        #rand_num = random.random()
-        #print("prob of dropping {} is {}. keep? {} (using {} as comparison)".format(
-        #    word, keep_prob, keep_prob <= rand_num, rand_num))
 
         return train_words
 

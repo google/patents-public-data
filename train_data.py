@@ -169,4 +169,10 @@ class LandscapeTrainingData:
             prepped_embedding, maxlen=sequence_len, padding='pre', truncating='post')
 
         return padded_embed, refs_one_hot, cpc_one_hot
-        
+
+    def show_instance_details(self, train_instance_idx):
+        print('\nOriginal: {}\nTokenized: {}\nIntegerized: {}\nLabelIntegerized: {}'.format(
+            self.series_text_to_embed[train_instance_idx],
+            self.to_text(self.prepped_embedding_train[train_instance_idx]),
+            self.prepped_embedding_train[train_instance_idx],
+            self.prepped_labels[train_instance_idx]))
