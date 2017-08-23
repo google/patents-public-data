@@ -74,5 +74,5 @@ pip install google-api-python-client pandas-gbq
 ### Python Utilities
 
 ```
-conda install numpy pandas h5py scipy scikit-learn matplotlib
+conda install numpy pandas h5py scipy scikit-learn matplotlib seaborn
 ```

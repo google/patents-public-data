@@ -7,7 +7,7 @@ from keras.preprocessing import sequence
 
 importlib.reload(tokenizer)
 
-class LandscapeTrainingData:
+class LandscapeTrainingDataUtil:
     RAND_SEED=314159
     refs_vocab_size = 50000
     training_df = None

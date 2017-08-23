@@ -21,8 +21,18 @@ class PatentLandscapeExpander:
     min_ratio_of_code_to_seed = 0.04
     min_seed_multiplier = 50.0
 
-    def __init__(self, seed_file, bq_project=None, patent_dataset=None, num_antiseed=None):
+    # persisted expansion information
+    training_data_full_df = None
+    seed_patents_df = None
+    l1_patents_df = None
+    l2_patents_df = None
+    anti_seed_patents = None
+    seed_data_path = None
+
+    def __init__(self, seed_file, seed_name, bq_project=None, patent_dataset=None, num_antiseed=None):
         self.seed_file = seed_file
+        self.seed_data_path = os.path.join('data', seed_name)
+
         if bq_project is not None:
             self.bq_project = bq_project
         if patent_dataset is not None:
@@ -372,7 +382,7 @@ class PatentLandscapeExpander:
 
         return training_data_df
 
-    def do_full_expansion(self, seed_file):
+    def do_full_expansion(self):
         '''
         Does a full expansion on seed set as described in paper, using seed set
         to derive an anti-seed for use in supervised learning stage.
@@ -381,7 +391,7 @@ class PatentLandscapeExpander:
         seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
             expander.do_full_expansion(seed_file)
         '''
-        seed_df = self.load_seed_pubs(seed_file)
+        seed_df = self.load_seed_pubs(self.seed_file)
 
         seed_patents_df = self.load_seeds_from_bq(seed_df)
 
@@ -421,11 +431,11 @@ class PatentLandscapeExpander:
         return seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_df
 
 
-    def derive_training_data_from_seeds(self, seed_file):
+    def derive_training_data_from_seeds(self):
         '''
         '''
         seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
-            self.do_full_expansion(seed_file)
+            self.do_full_expansion()
         training_publications_df = \
             seed_patents_df.append(anti_seed_patents)[['publication_number', 'ExpansionLevel']]
 
@@ -436,12 +446,10 @@ class PatentLandscapeExpander:
         training_data_full_df = training_data_df.merge(training_publications_df, on=['publication_number'])
 
         return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents
-        
 
-    def load_from_disk_or_do_expansion(self, seed_file, seed_name):
+    def load_from_disk_or_do_expansion(self):
 
-        seed_data_path = os.path.join('data', seed_name)
-        landscape_data_path = os.path.join(seed_data_path, 'landscape_data.pkl')
+        landscape_data_path = os.path.join(self.seed_data_path, 'landscape_data.pkl')
 
         if not os.path.exists(landscape_data_path):
             if not os.path.exists(seed_data_path):
@@ -449,7 +457,7 @@ class PatentLandscapeExpander:
 
             print('Loading landscape data from BigQuery.')
             training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
-                self.derive_training_data_from_seeds(seed_file)
+                self.derive_training_data_from_seeds()
 
             print('Saving landscape data to {}.'.format(landscape_data_path))
             with open(landscape_data_path, 'wb') as outfile:
@@ -464,4 +472,44 @@ class PatentLandscapeExpander:
 
                 training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \
                     landscape_data_deserialized
+
+        self.training_data_full_df = training_data_full_df
+        self.seed_patents_df = seed_patents_df
+        self.l1_patents_df = l1_patents_df
+        self.l2_patents_df = l2_patents_df
+        self.anti_seed_patents = anti_seed_patents
+
         return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents
+
+    def sample_for_inference(self, train_data_util, sample_frac=0.20):
+        if self.l1_patents_df is None:
+            raise ValueError('No patents loaded yet. Run expansion first (e.g., load_from_disc_or_do_expansion)')
+
+        inference_data_path = os.path.join(self.seed_data_path, 'landscape_inference_data.pkl')
+
+        if not os.path.exists(inference_data_path):
+            print('Loading inference data from BigQuery.')
+            subset_l1_pub_nums = self.l1_patents_df[['publication_number']].sample(frac=sample_frac).reset_index(drop=True)
+
+            l1_texts = self.load_training_data_from_pubs(subset_l1_pub_nums)
+
+            l1_subset = l1_texts[['publication_number', 'abstract_text', 'refs', 'cpcs']]
+
+            # encode the data using the training data util
+            padded_abstract_embeddings, refs_one_hot, cpc_one_hot = \
+                train_data_util.prep_for_inference(l1_subset.abstract_text, l1_subset.refs, l1_subset.cpcs)
+
+            print('Saving inference data to {}.'.format(inference_data_path))
+            with open(inference_data_path, 'wb') as outfile:
+                pickle.dump(
+                    (subset_l1_pub_nums, l1_texts, padded_abstract_embeddings, refs_one_hot, cpc_one_hot),
+                    outfile)
+        else:
+            print('Loading inference data from filesystem at {}'.format(inference_data_path))
+            with open(inference_data_path, 'rb') as infile:
+                inference_data_deserialized = pickle.load(infile)
+
+                subset_l1_pub_nums, l1_texts, padded_abstract_embeddings, refs_one_hot, cpc_one_hot = \
+                    inference_data_deserialized
+
+        return subset_l1_pub_nums, l1_texts, padded_abstract_embeddings, refs_one_hot, cpc_one_hot
