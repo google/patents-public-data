@@ -452,8 +452,8 @@ class PatentLandscapeExpander:
         landscape_data_path = os.path.join(self.seed_data_path, 'landscape_data.pkl')
 
         if not os.path.exists(landscape_data_path):
-            if not os.path.exists(seed_data_path):
-                os.makedirs(seed_data_path)
+            if not os.path.exists(self.seed_data_path):
+                os.makedirs(self.seed_data_path)
 
             print('Loading landscape data from BigQuery.')
             training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents = \

@@ -53,7 +53,7 @@ class LandscapeModel:
                 input_dim=self.td.trainCpcOneHotX.shape[1],
                 name='cpcs',
                 activation=None))
-        cpcs.add(Dropout(dropout_pct))
+        cpcs.add(Dropout(.8))
         cpcs.add(BatchNormalization())
         cpcs.add(ELU())
 
@@ -88,14 +88,14 @@ class LandscapeModel:
         deep.add(ELU())
 
 
-        #model = Sequential()
-        model = deep
-        #model.add(concatenate([wide, deep], axis=1))
-        #model.add(Merge([cpcs, deep], mode='concat', concat_axis=1))
-        #model.add(Dense(64, activation=None))
-        #model.add(Dropout(dropout_pct))
-        #model.add(BatchNormalization())
-        #model.add(ELU())
+        model = Sequential()
+        #model = deep
+        #model.add(concatenate([refs, deep], axis=1))
+        model.add(Merge([refs, deep], mode='concat', concat_axis=1))
+        model.add(Dense(64, activation=None))
+        model.add(Dropout(dropout_pct))
+        model.add(BatchNormalization())
+        model.add(ELU())
         model.add(Dense(1, activation='sigmoid'))
 
         # try using different optimizers and different optimizer configs
