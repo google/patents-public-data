@@ -1,5 +1,7 @@
 data/
 abstracts/
 checkpoints/
+models/landscaping/bigquery_credentials.dat
+models/landscaping/models/
 .ipynb_checkpoints/
 __pycache__/
