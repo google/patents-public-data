@@ -6,6 +6,16 @@ import re
 import os
 
 class PatentLandscapeExpander:
+    """Class for L1&L2 expansion as 'Automated Patent Landscaping' describes.
+
+    This object takes a seed set and a Google Cloud BigQuery project name and
+    exposes methods for doing expansion of the project. The logical entry-point
+    to the class is load_from_disk_or_do_expansion, which checks for cached
+    expansions for the given self.seed_name, and if a previous run is available
+    it will load it from disk and return it; otherwise, it does L1 and L2
+    expansions, persists it in a cached 'data/[self.seed_name]/' directory,
+    and returns the data to the caller.
+    """
     seed_file = None
     # BigQuery must be enabled for this project
     bq_project = 'patent-landscape-165715'
@@ -448,6 +458,13 @@ class PatentLandscapeExpander:
         return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents
 
     def load_from_disk_or_do_expansion(self):
+      """Loads data for seed from disk, else derives/persists, then returns it.
+
+      Checks for cached expansions for the given self.seed_name, and if a
+      previous run is available it will load it from disk and return it;
+      otherwise, it does L1 and L2 expansions, persists it in a cached
+      'data/[self.seed_name]/' directory, and returns the data to the caller.
+      """
 
         landscape_data_path = os.path.join(self.seed_data_path, 'landscape_data.pkl')
 
