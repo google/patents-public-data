@@ -61,7 +61,7 @@ Download and install Google Cloud SDK. You can download and install using [these
 pip install google-cloud
 ```
 
-Once you have the `gcloud` client installed, you need to authorize it to access Google's Cloud on your behalf. From your active conda environment, run this command and follow the prompts:
+Once you have the `gcloud` client installed, you need to authorize it to access Google's Cloud on your behalf. ***Don't forget this, or you'll get difficult to debug errors while running the code!*** From your active conda environment, run this command and follow the prompts:
 ```
 gcloud auth application-default login
 ```
@@ -76,3 +76,7 @@ pip install google-api-python-client pandas-gbq
 ```
 conda install numpy pandas h5py scipy scikit-learn matplotlib seaborn
 ```
+
+## Google Cloud Tools Client Authorization
+
+For this code to run properly, you need to authorize
