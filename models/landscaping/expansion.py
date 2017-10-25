@@ -472,13 +472,13 @@ class PatentLandscapeExpander:
         return training_data_full_df, seed_patents_df, l1_patents_df, l2_patents_df, anti_seed_patents
 
     def load_from_disk_or_do_expansion(self):
-      """Loads data for seed from disk, else derives/persists, then returns it.
-
-      Checks for cached expansions for the given self.seed_name, and if a
-      previous run is available it will load it from disk and return it;
-      otherwise, it does L1 and L2 expansions, persists it in a cached
-      'data/[self.seed_name]/' directory, and returns the data to the caller.
-      """
+        """Loads data for seed from disk, else derives/persists, then returns it.
+  
+        Checks for cached expansions for the given self.seed_name, and if a
+        previous run is available it will load it from disk and return it;
+        otherwise, it does L1 and L2 expansions, persists it in a cached
+        'data/[self.seed_name]/' directory, and returns the data to the caller.
+        """
 
         landscape_data_path = os.path.join(self.seed_data_path, 'landscape_data.pkl')
 
