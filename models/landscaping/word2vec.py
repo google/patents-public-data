@@ -51,7 +51,7 @@ class W2VModelDownload:
             return
 
         client = storage.Client()
-        bucket = client.get_bucket('patent_landscapes')
+        bucket = client.bucket('patent_landscapes')
         blob = bucket.blob(checkpoint_list_file)
         checkpoints = blob.download_as_string(client=client).decode()
         checkpoint_file = 'n/a'
