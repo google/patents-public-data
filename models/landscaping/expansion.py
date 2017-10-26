@@ -76,7 +76,7 @@ class PatentLandscapeExpander:
           STRING_AGG(citations.publication_number) AS refs,
           STRING_AGG(cpcs.code) AS cpc_codes
         FROM
-          `patent-landscape-165715.patents.publications_latest_copy` AS b,
+          `patents-public-data.patents.publications` AS b,
           UNNEST(citation) AS citations,
           UNNEST(cpc) AS cpcs
         WHERE
@@ -111,7 +111,7 @@ class PatentLandscapeExpander:
             SELECT
               COUNT(publication_number) AS num_patents
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b
+              `patents-public-data.patents.publications` AS b
             WHERE
               country_code = 'US'
         """
@@ -137,7 +137,7 @@ class PatentLandscapeExpander:
               cpcs.code,
               COUNT(cpcs.code) AS cpc_count
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b,
+              `patents-public-data.patents.publications` AS b,
               UNNEST(cpc) AS cpcs
             WHERE
             {}
@@ -245,7 +245,7 @@ class PatentLandscapeExpander:
               'L2' AS ExpansionLevel,
               STRING_AGG(citations.publication_number) AS refs
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b,
+              `patents-public-data.patents.publications` AS b,
               `{}` as tmp,
               UNNEST(citation) AS citations
             WHERE
@@ -280,7 +280,7 @@ class PatentLandscapeExpander:
               'L1' as ExpansionLevel,
               STRING_AGG(citations.publication_number) AS refs
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b,
+              `patents-public-data.patents.publications` AS b,
               UNNEST(citation) AS citations,
               UNNEST(cpc) AS cpcs
             WHERE
@@ -301,7 +301,7 @@ class PatentLandscapeExpander:
               'L1' as ExpansionLevel,
               STRING_AGG(citations.publication_number) AS refs
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b,
+              `patents-public-data.patents.publications` AS b,
               `{}` as tmp,
               UNNEST(citation) AS citations
             WHERE
@@ -332,7 +332,7 @@ class PatentLandscapeExpander:
               'AntiSeed' AS ExpansionLevel,
               rand() as random_num
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` AS b
+              `patents-public-data.patents.publications` AS b
             LEFT OUTER JOIN `{}` AS tmp ON b.publication_number = tmp.pub_num
             WHERE
             tmp.pub_num IS NULL
@@ -371,7 +371,7 @@ class PatentLandscapeExpander:
                 STRING_AGG(citations.publication_number) AS refs,
                 STRING_AGG(cpcs.code) AS cpcs
             FROM
-              `patent-landscape-165715.patents.publications_latest_copy` p,
+              `patents-public-data.patents.publications` p,
               `{}` as tmp,
               UNNEST(p.title_localized) AS title,
               UNNEST(p.abstract_localized) AS abstract,
