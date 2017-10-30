@@ -1,7 +1,7 @@
 # Purpose
 Patent landscaping is the process of finding patents related to a particular topic. It is important for companies, investors, governments, and academics seeking to gauge innovation and assess risk. However, there is no broadly recognized best approach to landscaping. Frequently, patent landscaping is a bespoke humandriven process that relies heavily on complex queries over bibliographic patent databases. In this paper (and repository), we present Automated Patent Landscaping, an approach that jointly leverages human domain expertise, heuristics based on patent metadata, and machine learning to generate highquality patent landscapes with minimal effort.
 
-## Creating a Patent Landscape
+# Creating a Patent Landscape
 
 The figure 1 shows the high level flow to create a patent landscape. We'll walk through each of these in turn in the accompanying Jupyter Notebook.
 
@@ -15,6 +15,14 @@ Before we get started, you should install some requirements for running this not
 * Google Cloud SDK
 * BigQuery Python Client
 * A few Python utilities
+
+### Platform Support
+
+Note that this has primarily been tested using Linux (Ubuntu) and Windows 10
+with both CPU-based TensorFlow and with GPUs. There's no reason this shouldn't
+work just fine with MacOS, but it's not been thoroughly tested. If you encounter
+issues with the instructions, please feel free to reach out to
+[Dave Feltenberger](https://github.com/seinberg) or send a pull request with a fix.
 
 ### Anaconda
 I strongly recommend using Anaconda for this - it helps manage environments for Python, and these instructions will assume you're using it. Download Anaconda from [https://www.continuum.io/downloads](https://www.continuum.io/downloads). Install the Python 3.6 version, *not* 2.7.
