@@ -78,4 +78,4 @@ conda install numpy pandas h5py scipy scikit-learn matplotlib seaborn
 
 ## Google Cloud Tools Client Authorization
 
-For this code to run properly, you need to authorize
+For this code to run properly, you need to authorize Google Cloud to run. This is important or you'll get weird errors that are hard to debug :) See above, the `gcloud` command.

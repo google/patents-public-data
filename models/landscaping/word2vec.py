@@ -32,9 +32,9 @@ from scipy.spatial import distance
 GPU_MEM_CONFIG = tf.ConfigProto(gpu_options={'allow_growth': True})
 
 class W2VModelDownload:
-    def __init__(self):
+    def __init__(self, bq_project):
         # no-op
-        self.nothing=''
+        self.bq_project = bq_project
 
     def download_w2v_model(self, landscape_bucket, model_name):
         from google.cloud import storage
@@ -45,12 +45,12 @@ class W2VModelDownload:
         :param model_name: The name of the model to download
         """
 
-        checkpoint_list_file = os.path.join('models', model_name, 'checkpoints', 'checkpoint')
+        checkpoint_list_file = '/'.join(['models', model_name, 'checkpoints', 'checkpoint'])
         if os.path.exists(checkpoint_list_file):
             print('Model {} already exists. Using local copy.'.format(model_name))
             return
 
-        client = storage.Client()
+        client = storage.Client(project=self.bq_project)
         bucket = client.bucket('patent_landscapes')
         blob = bucket.blob(checkpoint_list_file)
         checkpoints = blob.download_as_string(client=client).decode()
@@ -61,7 +61,7 @@ class W2VModelDownload:
                 checkpoint_file = checkpoint.split(': ')[1].replace('"', '')
                 break
 
-        blobs_list = bucket.list_blobs(prefix=os.path.join('models', model_name, 'checkpoints', checkpoint_file))
+        blobs_list = bucket.list_blobs(prefix='/'.join(['models', model_name, 'checkpoints', checkpoint_file]))
         checkpoints_files = []
         for blob_item in blobs_list:
             checkpoints_files.append(blob_item.name)
@@ -69,19 +69,19 @@ class W2VModelDownload:
         if checkpoint_file == 'n/a':
             raise ValueError('Unable to find checkpoint for model {}!'.format(model_name))
 
-        checkpoint_path = os.path.join('checkpoints', checkpoint_file)
+        checkpoint_path = '/'.join(['checkpoints', checkpoint_file])
 
-        model_base_local_path = os.path.join('models', model_name)
+        model_base_local_path = '/'.join(['models', model_name])
         local_dirs = ['checkpoints', 'vocab']
         files = checkpoints_files + [
-            os.path.join('models', model_name, 'train_words.pkl'),
-            os.path.join('models', model_name, 'checkpoints/checkpoint'),
-            os.path.join('models', model_name, 'vocab/config.csv'),
-            os.path.join('models', model_name, 'vocab/vocab.csv'),
+            '/'.join(['models', model_name, 'train_words.pkl']),
+            '/'.join(['models', model_name, 'checkpoints/checkpoint']),
+            '/'.join(['models', model_name, 'vocab/config.csv']),
+            '/'.join(['models', model_name, 'vocab/vocab.csv']),
         ]
 
         for storage_dir in local_dirs:
-            local_model_storage_dir = os.path.join(model_base_local_path, storage_dir)
+            local_model_storage_dir = '/'.join([model_base_local_path, storage_dir])
             if not os.path.exists(local_model_storage_dir):
                 os.makedirs(local_model_storage_dir)
 
