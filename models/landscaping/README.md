@@ -61,7 +61,7 @@ pip install tflearn
 ```
 
 ### Google Cloud SDK
-Download and install Google Cloud SDK. You can download and install using [these](https://cloud.google.com/sdk/docs) instructions, or more conveniently:
+Download and install Google Cloud SDK. You can download and install using [these](https://cloud.google.com/sdk/docs) instructions. On Linux, you'll need to source the `.sh` file and source the relevant include files to make sure the binaries are in your path. With Windows, it's more convenient:
 
 ```
 pip install google-cloud
@@ -86,3 +86,25 @@ conda install numpy pandas h5py scipy scikit-learn matplotlib seaborn
 ## Google Cloud Tools Client Authorization
 
 For this code to run properly, you need to authorize Google Cloud to run. This is important or you'll get weird errors that are hard to debug :) See above, the `gcloud` command.
+
+# Running the Landscaping Code
+
+There are two primary steps: 1) cloning the Github repo, and 2) starting
+Jupyiter.
+
+## 1) Clone the Landscaping Github Repo
+
+```
+git clone 
+```
+
+
+## 2) Start Jupyter
+
+Now that you have the Repo, from a command line, change into the root repo
+directory. Finally, set an environment variable and start Jupyter:
+
+```
+export KERAS_BACKEND=tensorflow; jupyter notebook
+```
+
