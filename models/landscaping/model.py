@@ -95,6 +95,10 @@ class LandscapeModel:
 
 
     def wire_model(self, lstm_size, dropout_pct):
+        '''DEPRECATED method to wire together wide and deep LSTM model.
+        Do not use this method - keeping here for reference, but the
+        wire_model_functional() method should be used instead.
+        '''
 
         print('Building model graph...')
 
