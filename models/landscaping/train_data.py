@@ -33,6 +33,7 @@ class LandscapeTrainingDataUtil:
     ref_to_id = None
     id_to_ref = None
     tokenizer = None
+    sequence_len = None
 
     def __init__(
         self, training_df, w2v_runtime):
@@ -151,6 +152,7 @@ class LandscapeTrainingDataUtil:
             median_doc_length, np.mean(doc_lengths), max_doc_length))
 
         sequence_len = max_doc_length
+        self.sequence_len = sequence_len
 
         print('Using sequence length of {} to pad LSTM sequences.'.format(sequence_len))
         self.padded_train_embed_x = sequence.pad_sequences(

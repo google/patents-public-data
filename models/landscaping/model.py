@@ -16,8 +16,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
 import keras
-from keras.models import Sequential
-from keras.layers import Dense, Embedding, BatchNormalization, ELU
+from keras.models import Sequential, Model
+from keras.layers import Dense, Input, Embedding, BatchNormalization, ELU, Concatenate
 from keras.layers import LSTM, Conv1D, MaxPooling1D, Merge
 from keras.layers.merge import concatenate
 from keras.layers.core import Dropout
@@ -40,6 +40,59 @@ class LandscapeModel:
         self.td = training_data
         self.data_path = data_path
         self.seed_name = seed_name
+
+    def wire_model_functional(self, lstm_size, dropout_pct, sequence_len):
+        print('Building Functional model.')
+
+        refs_input = Input(shape=(self.td.trainRefsOneHotX.shape[1],), name='refs_input')
+        refs = Dense(
+                256,
+                input_dim=self.td.trainRefsOneHotX.shape[1],
+                activation=None)(refs_input)
+        refs = Dropout(dropout_pct)(refs)
+        refs = BatchNormalization()(refs)
+        refs = ELU()(refs)
+        refs = Dense(64, activation=None)(refs)
+        refs = Dropout(dropout_pct)(refs)
+        refs = BatchNormalization()(refs)
+        refs = ELU()(refs)
+
+        # Use pre-trained Word2Vec embeddings
+        embedding_layer_input = Input(shape=(sequence_len,), name='embed_input')
+        embedding_layer = Embedding(self.td.w2v_runtime.embedding_weights.shape[0],
+                                    self.td.w2v_runtime.embedding_weights.shape[1],
+                                    weights=[self.td.w2v_runtime.embedding_weights],
+                                    input_length=sequence_len,
+                                    trainable=False)(embedding_layer_input)
+        deep = LSTM(
+            lstm_size,
+            dropout=dropout_pct,
+            recurrent_dropout=dropout_pct,
+            return_sequences=False,
+            name='LSTM_1')(embedding_layer)
+        deep = Dense(300, activation=None)(deep)
+        deep = Dropout(dropout_pct)(deep)
+        deep = BatchNormalization()(deep)
+        deep = ELU()(deep)
+
+        model_inputs_to_concat = [refs, deep]
+
+        final_layer = Concatenate(name='concatenated_layer')(model_inputs_to_concat)
+        output = Dense(64, activation=None)(final_layer)
+        output = Dropout(dropout_pct)(output)
+        output = BatchNormalization()(output)
+        output = ELU()(output)
+        output = Dense(1, activation='sigmoid')(output)
+
+        model = Model(inputs=[refs_input, embedding_layer_input], outputs=output, name='model')
+        model.compile(loss='binary_crossentropy',
+                      optimizer='adam',
+                      metrics=['accuracy', precision, recall, f1score])
+
+        self.tf_model = model
+        print('Done building graph.')
+        print(self.tf_model.summary())
+
 
     def wire_model(self, lstm_size, dropout_pct):
 
@@ -101,11 +154,12 @@ class LandscapeModel:
         deep.add(BatchNormalization())
         deep.add(ELU())
 
-
         model = Sequential()
         #model = deep
         #model.add(concatenate([refs, deep], axis=1))
-        model.add(Merge([refs, deep], mode='concat', concat_axis=1))
+        model.add(keras.layers.Concatenate()([refs, deep]))
+        # this one works
+        #model.add(Merge([refs, deep], mode='concat', concat_axis=1))
         model.add(Dense(64, activation=None))
         model.add(Dropout(dropout_pct))
         model.add(BatchNormalization())
