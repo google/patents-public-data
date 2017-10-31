@@ -103,7 +103,7 @@ Jupyiter.
 ## 1) Clone the Landscaping Github Repo
 
 ```
-git clone 
+git clone https://github.com/google/patents-public-data
 ```
 
 
