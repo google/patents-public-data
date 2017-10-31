@@ -69,7 +69,7 @@ pip install tflearn
 ```
 
 ### Google Cloud SDK
-Download and install Google Cloud SDK. You can download and install using [these](https://cloud.google.com/sdk/docs) instructions. On Linux, you'll need to source the `.sh` file and source the relevant include files to make sure the binaries are in your path. With Windows, it's more convenient:
+***Download and install Google Cloud SDK.*** You can download and install using [these](https://cloud.google.com/sdk/docs) instructions. On Linux, you'll need to source the `.sh` file and source the relevant include files to make sure the binaries are in your path. You should also install the python utilities for your Anaconda project:
 
 ```
 pip install google-cloud
@@ -109,8 +109,10 @@ git clone https://github.com/google/patents-public-data
 
 ## 2) Start Jupyter
 
-Now that you have the Repo, from a command line, change into the root repo
-directory. Finally, set an environment variable and start Jupyter:
+Now that you have the Repo, from a command line, change into the root of the
+repository you just cloned. The Jupyter notebook we care about is in
+`models/landscaping/LandscapeNotebook.ipynb`. Finally, set an environment
+variable and start Jupyter:
 
 ```
 export KERAS_BACKEND=tensorflow; jupyter notebook
