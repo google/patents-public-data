@@ -84,7 +84,8 @@ class LandscapeModel:
         deep = BatchNormalization()(deep)
         deep = ELU()(deep)
 
-        model_inputs_to_concat = [cpcs, refs, deep]
+        #model_inputs_to_concat = [cpcs, refs, deep]
+        model_inputs_to_concat = [refs, deep]
 
         final_layer = Concatenate(name='concatenated_layer')(model_inputs_to_concat)
         output = Dense(64, activation=None)(final_layer)
@@ -93,7 +94,8 @@ class LandscapeModel:
         output = ELU()(output)
         output = Dense(1, activation='sigmoid')(output)
 
-        model = Model(inputs=[cpcs_input, refs_input, embedding_layer_input], outputs=output, name='model')
+        #model = Model(inputs=[cpcs_input, refs_input, embedding_layer_input], outputs=output, name='model')
+        model = Model(inputs=[refs_input, embedding_layer_input], outputs=output, name='model')
         model.compile(loss='binary_crossentropy',
                       optimizer='adam',
                       metrics=['accuracy', precision, recall, f1score])
@@ -170,9 +172,9 @@ class LandscapeModel:
         model = Sequential()
         #model = deep
         #model.add(concatenate([refs, deep], axis=1))
-        model.add(keras.layers.Concatenate()([refs, deep]))
+        #model.add(keras.layers.Concatenate()([refs, deep]))
         # this one works
-        #model.add(Merge([refs, deep], mode='concat', concat_axis=1))
+        model.add(Merge([refs, deep], mode='concat', concat_axis=1))
         model.add(Dense(64, activation=None))
         model.add(Dropout(dropout_pct))
         model.add(BatchNormalization())
