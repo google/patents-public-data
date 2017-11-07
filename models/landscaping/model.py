@@ -57,6 +57,15 @@ class LandscapeModel:
         refs = BatchNormalization()(refs)
         refs = ELU()(refs)
 
+        cpcs_input = Input(shape=(self.td.trainCpcOneHotX.shape[1],), name='cpcs_input')
+        cpcs = Dense(
+                32,
+                input_dim=self.td.trainCpcOneHotX.shape[1],
+                activation=None)(cpcs_input)
+        cpcs = Dropout(dropout_pct)(cpcs)
+        cpcs = BatchNormalization()(cpcs)
+        cpcs = ELU()(cpcs)
+
         # Use pre-trained Word2Vec embeddings
         embedding_layer_input = Input(shape=(sequence_len,), name='embed_input')
         embedding_layer = Embedding(self.td.w2v_runtime.embedding_weights.shape[0],
@@ -75,7 +84,7 @@ class LandscapeModel:
         deep = BatchNormalization()(deep)
         deep = ELU()(deep)
 
-        model_inputs_to_concat = [refs, deep]
+        model_inputs_to_concat = [cpcs, refs, deep]
 
         final_layer = Concatenate(name='concatenated_layer')(model_inputs_to_concat)
         output = Dense(64, activation=None)(final_layer)
@@ -84,7 +93,7 @@ class LandscapeModel:
         output = ELU()(output)
         output = Dense(1, activation='sigmoid')(output)
 
-        model = Model(inputs=[refs_input, embedding_layer_input], outputs=output, name='model')
+        model = Model(inputs=[cpcs_input, refs_input, embedding_layer_input], outputs=output, name='model')
         model.compile(loss='binary_crossentropy',
                       optimizer='adam',
                       metrics=['accuracy', precision, recall, f1score])
@@ -180,7 +189,7 @@ class LandscapeModel:
         print(self.tf_model.summary())
 
 
-    def train_model(self, model, batch_size):
+    def train_model(self, model, batch_size, num_epochs=5):
         print('Training model.')
         model.fit(x={
             'refs_input': self.td.trainRefsOneHotX,
@@ -188,7 +197,7 @@ class LandscapeModel:
             'cpcs_input': self.td.trainCpcOneHotX},
                   y=self.td.trainY,
                   batch_size=batch_size,
-                  epochs=5,
+                  epochs=num_epochs,
                   validation_data=(
                       {
                           'refs_input': self.td.testRefsOneHotX,
@@ -197,7 +206,7 @@ class LandscapeModel:
                       self.td.testY))
         return model
 
-    def train_or_load_model(self, batch_size):
+    def train_or_load_model(self, batch_size, num_epochs=5):
         model_dir = os.path.join(self.data_path, self.seed_name)
         model_path = os.path.join(model_dir, 'model.pb')
 
@@ -208,7 +217,7 @@ class LandscapeModel:
                 custom_objects={'precision': precision, 'recall': recall, 'fmeasure': f1score})
         else:
             print('Model has not been trained yet.')
-            tf_model = self.train_model(self.tf_model, batch_size)
+            tf_model = self.train_model(self.tf_model, batch_size, num_epochs)
             print('Saving model to {}'.format(model_path))
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
