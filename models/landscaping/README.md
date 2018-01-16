@@ -118,7 +118,7 @@ variable and start Jupyter:
 export KERAS_BACKEND=tensorflow; jupyter notebook
 ```
 
-'Note': don't forget to change Conda environments to the patent-landscape one.
+*Note*: don't forget to change Conda environments to the patent-landscape one.
 You can do this before starting `jupyter` with the following command:
 ```
 source activate patent-landscape (or just: activate patent-landscape if you're in Windows)
