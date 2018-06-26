@@ -236,4 +236,3 @@ this repository.
     GCP.](https://github.com/amygdala/code-snippets/blob/master/ml/census_train_and_eval/using_tf.estimator.train_and_evaluate.ipynb)
 -   [Overview of hyperparameter
     tuning](https://cloud.google.com/ml-engine/docs/tensorflow/hyperparameter-tuning-overview)
-    ````
