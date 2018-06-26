@@ -9,3 +9,6 @@ Currently the repo contains two examples:
 1. [Patent Landscaping](https://github.com/google/patents-public-data/blob/master/models/landscaping/README.md):  A demo of an automated process of finding patents related to a particular topic given an initial seed set of patents. Based on the paper by Dave Feltenberger and Aaron Abood, [Automated Patent Landscaping](models/landscaping/AutomatedPatentLandscaping.pdf).
 
 2. [Claim Text Extraction](https://github.com/google/patents-public-data/blob/master/examples/claim-text/claim_text_extraction.ipynb): A demo of interacting with patent claim text data using BigQuery and python.
+
+3. [Claim Breadth Model](https://github.com/google/patents-public-data/blob/master/models/claim_breadth/README.md): A machine learning method for estimating patent claim breadth using data from BigQuery.
+
