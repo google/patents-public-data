@@ -49,7 +49,7 @@ the GOOGLE_APPLICATION_CREDENTIALS environmental variable.
 #### Setup a virtual environment and install python dependencies.
 
 Additionally, you'll likely want to work inside a python virtual environment.
-You Can set one up with the following commands:
+You can set one up with the following commands:
 
 ```
 virtualenv myenv
@@ -63,7 +63,7 @@ Below are a handful of sample commands that can be used as a reference on how to
 run the scripts in this repository. For more info, see the blog post mentioned
 above. Please note that all of the commands below will incur charges on your GCP
 account. Most of the commands can be run for less than a dollar at current
-prices, but hyperparamter tuning can easily become very expensive if you run
+prices, but hyperparameter tuning can easily become very expensive if you run
 many trials. Consider setting [billing alerts and
 limits](https://cloud.google.com/billing/docs/how-to/budgets) before running any
 of the commands below.
