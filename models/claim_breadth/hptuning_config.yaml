@@ -1,10 +1,5 @@
 trainingInput:
-  scaleTier: CUSTOM
-  masterType: standard
-  workerType: standard
-  parameterServerType: standard
-  workerCount: 6
-  parameterServerCount: 3
+  scaleTier: BASIC_GPU
   hyperparameters:
     enableTrialEarlyStopping: True
     hyperparameterMetricTag: auc
