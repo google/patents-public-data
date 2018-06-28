@@ -151,7 +151,7 @@ class RunInference(beam.DoFn):
         body={'instances': [instance]}
     ).execute()
 
-    broad_score = response['predictions'][0]['probabilities'][0]
+    broad_score = response['predictions'][0]['probabilities'][1]
 
     # Pull the publication number from the TF Example proto.
     pub_number = ex.features.feature['publication_number'].bytes_list.value[0]
