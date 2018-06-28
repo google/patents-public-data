@@ -23,7 +23,6 @@ import tensorflow as tf
 # Dictionary of Patterns we plan to count in the claim.
 PATTERNS = {
     'element_cnt': ';',
-    'newline_tab_cnt': r'(\n|\t)',
     'atleastoneofand_cnt': r'(at\sleast\sone\sof).+(and)',
     'atleastoneofor_cnt': r'(at\sleast\sone\sof).+(or)',
     'adding_words_cnt': '(after|subsequent|\band\b|including|next)',

@@ -26,7 +26,6 @@ FEATURE_NAMES = [
     'limiting_words_cnt', 'digits_or_decimal_cnt', 'atleastoneofand_cnt',
     'atleastoneofor_cnt', 'counting_cnt', 'excluding_words_cnt',
     'groupconsistingof_cnt', 'element_cnt', 'adding_words_cnt',
-    'newline_tab_cnt'
 ]
 
 
