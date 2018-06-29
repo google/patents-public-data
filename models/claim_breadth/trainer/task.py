@@ -41,25 +41,25 @@ def parse_args():
   parser.add_argument(
       '--dropout',
       help='Dropout between layers in DNN.',
-      default=0.55,
+      default=0.35,
       type=float
   )
   parser.add_argument(
       '--learning-rate',
       help='Learning rate for the optimizer.',
-      default=0.0085,
+      default=0.01,
       type=float
   )
   parser.add_argument(
       '--first-layer-size',
       help='Number of nodes in the first layer of the DNN',
-      default=4600,
+      default=7500,
       type=int
   )
   parser.add_argument(
       '--num-layers',
       help='Number of layers in the DNN',
-      default=2,
+      default=1,
       type=int
   )
   parser.add_argument(
@@ -78,7 +78,7 @@ def parse_args():
   parser.add_argument(
       '--cpc-embedding-dim',
       help='Size of the learned embedding column to represent CPC codes.',
-      default=15,
+      default=85,
       type=int
   )
 
