@@ -3,7 +3,7 @@
 The code in this repository is one approach to measuring patent claim breadth
 using a semi supervised approach. For more details and background, please see
 [this post on the Google Cloud Big Data
-Blog.](https://cloud.google.com/blog/big-data/2018/06/measuring-patent-claim-breadth-using-google-patents-public-datasets)
+Blog.](https://cloud.google.com/blog/big-data/2018/07/measuring-patent-claim-breadth-using-google-patents-public-datasets)
 
 ## Prerequisites
 
