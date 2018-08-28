@@ -25,7 +25,7 @@ issues with the instructions, please feel free to reach out to
 [Dave Feltenberger](https://github.com/seinberg) or send a pull request with a fix.
 
 ### Anaconda
-I strongly recommend using Anaconda for this - it helps manage environments for Python, and these instructions will assume you're using it. Download Anaconda from [https://www.continuum.io/downloads](https://www.continuum.io/downloads). Install the Python 3.6 version, *not* 2.7.
+I strongly recommend using Anaconda for this - it helps manage environments for Python, and these instructions will assume you're using it. Download Anaconda from [https://www.anaconda.com/download/](https://www.anaconda.com/download/). Install the Python 3.6 version, *not* 2.7.
 
 Once Anaconda is installed, create an environment:
 ```
