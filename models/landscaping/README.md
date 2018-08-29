@@ -98,7 +98,7 @@ For this code to run properly, you need to authorize Google Cloud to run. This i
 # Running the Landscaping Code
 
 There are two primary steps: 1) cloning the Github repo, and 2) starting
-Jupyiter.
+Jupyter.
 
 ## 1) Clone the Landscaping Github Repo
 
