@@ -73,6 +73,7 @@ pip install tflearn
 
 ```
 pip install google-cloud
+pip install google-cloud-storage
 ```
 
 Once you have the `gcloud` client installed, you need to authorize it to access Google's Cloud on your behalf. ***Don't forget this, or you'll get difficult to debug errors while running the code!*** From your active conda environment, run this command and follow the prompts:
