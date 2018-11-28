@@ -1,0 +1,42 @@
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# List datasets and tables matching a pattern. Collapse versions.
+# bq_ls.pysh jefferson-1790:*
+import sh
+import sys
+import re
+
+source_project = sys.argv[1]
+
+#source_project_dataset, source_pattern = source.split(".")
+#source_project, source_dataset = source_project_dataset.split(":")
+
+# List all tables in a dataset.
+bq = sh.Command("bq")
+
+datasets = bq("ls", source_project + ":").stdout.split("\n")[2:]
+
+for row in datasets:
+  if row == "":
+    continue
+  dataset = row.split()[0]
+  print("-"*50)
+  print("Dataset: %s" % dataset)
+  tables = bq("ls", "-n", "100000", source_project + ":" + dataset).stdout.split("\n")[2:]
+  for x in tables:
+    if x == "":
+      continue
+    table = x.split()[0]
+    print("\t%s" % table)

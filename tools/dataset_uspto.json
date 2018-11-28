@@ -1,0 +1,81 @@
+{
+  "tables": {
+    "USPTO": [
+      "patents-public-data:patentsview.*",
+      "patents-public-data:uspto_oce_assignment.*",
+      "patents-public-data:uspto_oce_cancer.*",
+      "patents-public-data:uspto_oce_claims.*",
+      "patents-public-data:uspto_oce_litigation.*",
+      "patents-public-data:uspto_oce_office_actions.*",
+      "patents-public-data:uspto_oce_pair.*",
+      "patents-public-data:uspto_peds.*",
+      "patents-public-data:uspto_ptab.*"
+    ]
+  },
+  "groups": {
+    "patents-public-data:patents.publications": "country_code"
+  },
+  "joins": {
+    "publication_number": [
+      "patents-public-data:patentsview.match|publication_number",
+      "patents-public-data:uspto_oce_assignment.match|publication_number",
+      "patents-public-data:uspto_oce_cancer.match|publication_number",
+      "patents-public-data:uspto_oce_claims.match|publication_number"
+    ],
+    "family_id": [
+      "patents-public-data:uspto_oce_cancer.publications|Family_ID"
+    ],
+    "application_number": [
+      "patents-public-data:uspto_oce_office_actions.match_app|application_number",
+      "patents-public-data:uspto_oce_pair.match|application_number",
+      "patents-public-data:uspto_peds.match|application_number",
+      "patents-public-data:uspto_ptab.match|application_number"
+    ],
+    "OCE Assignment pgpub_doc_num": [
+      "patents-public-data:uspto_oce_assignment.match|pgpub_doc_num",
+      "+patents-public-data:uspto_oce_assignment.documentid|pgpub_doc_num"
+    ],
+    "OCE Assignment grant_doc_num": [
+      "patents-public-data:uspto_oce_assignment.match|grant_doc_num",
+      "+patents-public-data:uspto_oce_assignment.documentid|grant_doc_num"
+    ],
+    "OCE Cancer id": [
+      "patents-public-data:uspto_oce_cancer.match|Patent_or_Publication_ID",
+      "+patents-public-data:uspto_oce_cancer.publications|Patent_or_Publication_ID"
+    ],
+    "OCE Claims pat_no": [
+      "patents-public-data:uspto_oce_claims.match|pat_no",
+      "+patents-public-data:uspto_oce_claims.patent_document_stats|pat_no"
+    ],
+    "OCE Claims pub_no": [
+      "patents-public-data:uspto_oce_claims.match|pub_no",
+      "+patents-public-data:uspto_oce_claims.pgpub_document_stats|pub_no"
+    ],
+    "OCE OA app_id": [
+      "patents-public-data:uspto_oce_office_actions.match_app|app_id",
+      "+patents-public-data:uspto_oce_office_actions.citations|app_id",
+      "+patents-public-data:uspto_oce_office_actions.office_actions|app_id",
+      "+patents-public-data:uspto_oce_office_actions.rejections|app_id"
+    ],
+    "OCE OA pub_id": [
+      "+patents-public-data:uspto_oce_office_actions.citations|parsed",
+      "patents-public-data:uspto_oce_office_actions.match_pub|parsed"
+    ],
+    "OCE PAIR app_num": [
+      "patents-public-data:uspto_oce_pair.match|application_number_pair",
+      "+patents-public-data:uspto_oce_pair.application_data|application_number"
+    ],
+    "PEDS app_num": [
+     "patents-public-data:uspto_peds.match|applicationNumberText",
+     "+patents-public-data:uspto_peds.applications|patentCaseMetadata.applicationNumberText.electronicText"
+    ],
+    "PTAB app_num": [
+      "patents-public-data:uspto_ptab.match|ApplicationNumber",
+      "+patents-public-data:uspto_ptab.trials|ApplicationNumber"
+    ],
+    "PatentsView patent_id": [
+      "+patents-public-data:patentsview.patent|id",
+      "patents-public-data:patentsview.*|patent_id"
+    ]
+  }
+}

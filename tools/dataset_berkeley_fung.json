@@ -1,0 +1,13 @@
+{
+  "tables": {
+    "Berkeley Fung": [
+      "erudite-marker-539:JEMS16.*"
+    ]
+  },
+  "groups": {},
+  "joins": {
+    "family_id": [
+      "erudite-marker-539:JEMS16.patent_metadata_2|FamilyID"
+    ]
+  }
+}

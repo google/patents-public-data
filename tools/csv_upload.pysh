@@ -1,0 +1,218 @@
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Uploads one or more CSV files into one or more BigQuery tables.
+#
+# Single file, single table:
+# python3 csv_upload.pysh --source '~/Downloads/table.csv' --tables=jefferson-1790:dataset.table
+#
+# Multiple files, single table:
+# python3 csv_upload.pysh --source '~/Downloads/table_*.csv' --tables=jefferson-1790:dataset.table
+#
+# Multiple files per table, multiple tables:
+# python3 csv_upload.pysh --source '~/Downloads/patstat/Data/{}_part*.txt' --tables=jefferson-1790:epo_patstat.{}
+# table1_part00.txt, table1_part01.txt, ... -> jefferson-1790:epo_patstat.table1
+# table2_part00.txt -> jefferson-1790:epo_patstat.table2
+# etc
+import sys
+try:
+  import sh
+except:
+  print("Missing 'sh' library, run 'pip3 install sh'")
+  sys.exit(1)
+import re
+import os
+import argparse
+import glob
+import hashlib
+import queue
+import io
+
+parser = argparse.ArgumentParser(description="Upload a CSV file to a BigQuery table")
+parser.add_argument("--dry_run", default=False, action="store_true", help="Do not upload.")
+parser.add_argument("--bq_bin", default="bq", help="Path to the BigQuery CLI")
+parser.add_argument("--gsutil_bin", default="gsutil", help="Path to the GSUtil CLI")
+parser.add_argument("--project_id", default="", help="Google Cloud Project ID to store temporary Google Cloud Storage files in. If empty, uses the project from the table name.")
+parser.add_argument("--storage_bucket", default="", help="Google Cloud Storage bucket name. This bucket must be in the same region as --location. If empty, creates a new bucket under this project_id.")
+parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite the table if it exists.")
+parser.add_argument("--field_delimiter", default=",", help="Field delimiter between data.")
+parser.add_argument("--read_header", default=True, action="store_true", help="Set the schema from the first row of the first CSV input, else --header must be set.")
+parser.add_argument("--header", default="", help="Comma-separated header names for each column. Only for single tables.")
+parser.add_argument("--location", default="US", help="Geographical location for the dataset, either US or EU. US is preferred, since JOINs must be between tables in the same region.")
+parser.add_argument("--tables", help="BigQuery destination tables. Use '{}' as a placeholder for a matching name in --sources ('project-id:dataset.{}').")
+parser.add_argument("--sources", help="CSV source file pattern. Use '{}' to generate multiple table names in --tables ('reg{}_part*.txt', '**/{}.csv').")
+args = parser.parse_args()
+
+# Find the source files and destinatination tables.
+sources = os.path.expanduser(args.sources)
+source_files = glob.glob(sources.replace("{}", "*"))
+
+table_files = {}
+
+file_re = sources.replace("*", ".*").replace("{}", "(.*)") + "$"
+for file in source_files:
+  matches = re.search(file_re, file)
+  if not matches:
+    continue
+  table_name = args.tables
+  if "{}" in args.sources:
+    table_part = matches.group(1)
+  else:
+    table_part = os.path.basename(file).replace('.', '_')
+  table_name = args.tables.replace('{}', table_part)
+
+  if table_name not in table_files:
+    table_files[table_name] = []
+  table_files[table_name].append(file)
+
+for table in sorted(table_files.keys()):
+  print(table)
+  for v in table_files[table]:
+    print("  " + v)
+
+if args.header and len(table_files) > 1:
+  print("--header can only be set for a single table upload")
+  os.exit(1)
+
+# Upload to bucket.
+# Clear bucket space
+gsutil = sh.Command(args.gsutil_bin)
+
+project_id = args.project_id
+if not project_id:
+  project_id = args.tables.split(":")[0]
+
+
+bucket = args.storage_bucket
+if not bucket:
+  bucket = "%s-bq-uploads-tool" % project_id
+
+bucket = "gs://" + bucket
+
+try:
+  gsutil("ls", bucket)
+  print("Bucket %s exists" % bucket)
+except:
+  if args.location == "EU":
+    bucket_location = "europe-west1"
+  else:
+    bucket_location = "us-east1"
+
+  mb_args = ["mb", "-c", "regional", "-l", bucket_location, "-p", project_id, bucket]
+  print("gsutil %s" % mb_args)
+  if not args.dry_run:
+    gsutil(*mb_args)
+    print("Created new bucket")
+
+# Split to 4G, gzip and upload CSV files. Skip the header lines.
+bq = sh.Command(args.bq_bin)
+
+buf = 8 * 2 ** 20
+
+class Splitter:
+  def __init__(self, max_size, path):
+    self.max_size = max_size
+    self.path = path
+    self.size = 0
+    self.parts = 0
+    self.upload_paths = []
+    self.upload_pipe = None
+    self.upload_proc = None
+
+  def data(self, data_chunk):
+    # Pipe this through to the gzip and upload commands.
+    chunk_size = len(data_chunk)
+    if self.size + chunk_size > self.max_size:
+      self.flush()
+      self.size = 0
+      self.upload_proc = None
+    if self.upload_proc is None:
+      self.upload_pipe = queue.Queue(maxsize=1)
+      gzip_pipe = sh.gzip("-f", _in=self.upload_pipe, _in_bufsize=buf, _out_bufsize=buf, _bg=True)
+      path_split = self.path + "_chunk%09d.gz" % self.parts
+      self.upload_paths.append(path_split)
+      self.parts += 1
+      print("Uploading %s" % path_split)
+      self.upload_proc = gsutil(gzip_pipe, "cp", "-", path_split, _in_bufsize=buf, _bg=True, _internal_bufsize=16 * 2 ** 20)
+      print("Upload proc: %s" % self.upload_proc.pid)
+
+    self.size += chunk_size
+    print("%.4f GB" % (self.size / (2 ** 30)))
+    self.upload_pipe.put(data_chunk)
+
+  def done(self, *args):
+    print("Splitter parent done")
+    self.flush()
+
+  def flush(self):
+    print("Closing upload pipe")
+    self.upload_pipe.put(None)
+    print("Waiting for upload to finish")
+    self.upload_proc.wait()
+    print("Upload finished")
+
+
+for table in sorted(table_files.keys()):
+  files = table_files[table]
+  print("Uploading files for table %s" % table)
+  uploaded_paths = []
+  for file in files:
+    dest = bucket + "/%s_%s_%s" % (re.sub('[^a-zA-Z0-9_]', '', table), hashlib.sha1(file.encode('utf-8')).hexdigest(), os.path.basename(file))
+    # Split into 4G chunks, gzip and upload.
+    print("Copying %s to %s..." % (file, dest))
+    if not args.dry_run:
+      splitter = Splitter(4 * 2 ** 30, dest)  # 4G
+      tail_pipe = sh.tail("-n" "+2", file, _out=splitter.data, _out_bufsize=buf, _done=splitter.done, _bg=True)
+      tail_pipe.wait()
+      uploaded_paths.extend(splitter.upload_paths)
+    else:
+      uploaded_paths.append(dest + "...[dry run]")
+
+  # Get the header.
+  header = args.header
+  if not header:
+    header = sh.head("-n", "1", files[0]).strip()
+
+  schema = ",".join(["%s:STRING" % x for x in header.split(",")])
+  # bq create table uploaded_paths
+  bq_args = [
+      "--location", args.location,
+      "--project_id", project_id,
+      "load",
+      "--source_format", "CSV",
+      "--replace",
+      "--field_delimiter", args.field_delimiter,
+      "--schema", schema,
+      "--allow_quoted_newlines",
+      table,
+      ",".join(uploaded_paths),
+  ]
+  print("Creating table %s" % table)
+  try:
+    dataset = table.split(".")[0]
+    bq("show", dataset)
+  except:
+    print("Creating dataset %s" % dataset)
+    bq_mk_args = ["--location", args.location, "mk", "--project_id", project_id, dataset]
+    print("bq %s" % bq_mk_args)
+    if not args.dry_run:
+      bq(*bq_mk_args)
+
+  print("bq %s" % bq_args)
+  if not args.dry_run:
+    bq(*bq_args)
+    print("Removing uploaded files %s" % uploaded_paths)
+    gsutil("rm", *uploaded_paths)
+    print("Done creating %s" % table)
+

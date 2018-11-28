@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "IFI Claims": [
+      "jefferson-1790:ifi_claims.xml",
+      "jefferson-1790:ifi_claims.publications"
+    ]
+  },
+  "groups": {
+    "jefferson-1790:ifi_claims.xml": "country"
+  },
+  "joins": {
+    "publication_number": [
+      "+jefferson-1790:ifi_claims.xml|publication_number"
+    ]
+  }
+}

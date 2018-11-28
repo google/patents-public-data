@@ -1,0 +1,27 @@
+{
+  "tables": {
+    "European Bioinformatics Institute": [
+      "patents-public-data:ebi_chembl.*",
+      "patents-public-data:ebi_surechembl.*"
+    ]
+  },
+  "groups": {},
+  "joins": {
+    "publication_number": [
+      "patents-public-data:ebi_surechembl.match|publication_number",
+      "patents-public-data:ebi_chembl.match_24|publication_number"
+    ],
+    "SureChEMBL patent_id": [
+      "patents-public-data:ebi_surechembl.match|patent_id",
+      "+patents-public-data:ebi_surechembl.map|patent_id"
+    ],
+    "ChEMBL patent_no": [
+      "patents-public-data:ebi_chembl.match_24|patent_no",
+      "+patents-public-data:ebi_chembl.product_patents_24|patent_no"
+    ],
+    "ChEMBL molregno": [
+      "+patents-public-data:ebi_chembl.compound_properties_24|molregno",
+      "patents-public-data:ebi_chembl.*|molregno"
+    ]
+  }
+}

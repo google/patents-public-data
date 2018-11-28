@@ -1,0 +1,23 @@
+{
+  "tables": {
+    "Google Patents Public Datasets": [
+      "patents-public-data:patents.*",
+      "patents-public-data:google_patents_research.*"
+    ]
+  },
+  "groups": {
+    "patents-public-data:patents.publications": "country_code"
+  },
+  "joins": {
+    "publication_number": [
+      "+patents-public-data:patents.publications|publication_number",
+      "patents-public-data:google_patents_research.publications|publication_number"
+    ],
+    "family_id": [
+      "+patents-public-data:patents.publications|family_id"
+    ],
+    "application_number": [
+      "+patents-public-data:patents.publications|application_number"
+    ]
+  }
+}

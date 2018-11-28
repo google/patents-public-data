@@ -1,0 +1,57 @@
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Copy a bunch of bigquery tables matching a pattern to a new pattern.
+# bq_bulk_cp.pysh jefferson-1790:ebi_chembl.*_23 patents-public-data.ebi_chembl.*
+import sh
+import sys
+import re
+import argparse
+
+parser = argparse.ArgumentParser(description="Copy a set of BigQuery tables")
+parser.add_argument("--dry_run", default=False, action="store_true", help="do not copy")
+parser.add_argument("source", help="source table pattern, 'jefferson-1790:ebi_chembl.*_23'")
+parser.add_argument("target", help="target table pattern, 'patents-public-data:ebi_chembl.*_23'")
+args = parser.parse_args()
+
+source_dataset, source_pattern = args.source.split(".")
+if "*" in source_dataset:
+  print("Wildcards are only supported on tables, not datasets.")
+  sys.exit(1)
+
+# List all tables in a dataset.
+bq = sh.Command("bq")
+
+if "*" not in source_pattern:
+  bq("cp", args.source, args.target)
+  sys.exit(0)
+
+tables = bq("ls", "-n", "100000", source_dataset).stdout.split("\n")[2:]
+
+source_re = source_pattern.replace("*", "(.*)")
+
+for row in tables:
+  if row == "":
+    continue
+  table = row.split()[0]
+
+  match = re.match(source_re, table)
+  if match:
+    src = source_dataset + "." + table
+    dest = args.target.replace("*", match.group(1))
+    print("bq cp %s %s" % (src, dest))
+    if not args.dry_run:
+      bq("--debug_mode=true", "--headless=true", "cp", "--force", src, dest, _fg=True)
+  else:
+    print("Skipping %s" % source_dataset + "." + table)

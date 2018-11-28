@@ -1,0 +1,16 @@
+# python ocean/patents/deepsea/research/chembl_dump.pysh '/usr/local/google/home/wetherbeei/Downloads/chembl/chembl_24.db' '/usr/local/google/home/wetherbeei/Downloads/chembl/'
+import sh
+import sys
+import os.path
+
+db = sys.argv[1]
+dir = sys.argv[2]
+
+tables = sh.sqlite3("-csv", db, "SELECT name FROM sqlite_master WHERE type='table';").stdout.split("\n")
+
+for table in tables:
+  if table == "":
+    continue
+  path = os.path.join(dir, table + ".csv")
+  print("Dumping %s" % path)
+  sh.sqlite3("-csv", "-header", db, "SELECT * FROM %s;" % table, _out=path)

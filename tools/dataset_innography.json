@@ -1,0 +1,15 @@
+{
+  "tables": {
+    "CPA Global": [
+      "innography-174118:technical_standards.etsi"
+    ]
+  },
+  "groups": {
+    "innography-174118:technical_standards.etsi": "TechnicalStandard"
+  },
+  "joins": {
+    "publication_number": [
+      "innography-174118:technical_standards.etsi|PublicationNumber"
+    ]
+  }
+}

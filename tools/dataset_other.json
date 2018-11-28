@@ -1,0 +1,21 @@
+{
+  "tables": {
+    "Other": [
+      "patents-public-data:cpc.*",
+      "patents-public-data:dsep.*",
+      "patents-public-data:marec.*",
+      "patents-public-data:usitc_investigations.*",
+      "patents-public-data:worldbank_wdi.*"
+    ]
+  },
+  "groups": {},
+  "joins": {
+    "publication_number": [
+      "patents-public-data:usitc_investigations.match|publication_number",
+      "patents-public-data:marec.publications|publication_number"
+    ],
+    "family_id": [
+      "patents-public-data:dsep.disclosures_13|family_id"
+    ]
+  }
+}
