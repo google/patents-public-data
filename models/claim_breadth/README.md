@@ -7,6 +7,8 @@ Blog.](https://cloud.google.com/blog/big-data/2018/07/measuring-patent-claim-bre
 
 ## Prerequisites
 
+This guide assumes access to a linux based operating system. Windows users may run into compatibility issues when running the commands below. Windows users should consider using a virtual machine.
+
 #### Setup a Google Cloud Project and Install the gcloud sdk
 
 Much of the code in this repository requires access to a Google Cloud Project.
