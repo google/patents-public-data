@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix
 import keras
 from keras.models import Sequential, Model
 from keras.layers import Dense, Input, Embedding, BatchNormalization, ELU, Concatenate
-from keras.layers import LSTM, Conv1D, MaxPooling1D, Merge
+from keras.layers import LSTM, Conv1D, MaxPooling1D
 from keras.layers.merge import concatenate
 from keras.layers.core import Dropout
 from keras_metrics import precision, recall, f1score
@@ -104,93 +104,6 @@ class LandscapeModel:
         print('Done building graph.')
         print(self.tf_model.summary())
 
-
-    def wire_model(self, lstm_size, dropout_pct):
-        '''DEPRECATED method to wire together wide and deep LSTM model.
-        Do not use this method - keeping here for reference, but the
-        wire_model_functional() method should be used instead.
-        '''
-
-        print('Building model graph...')
-
-        refs = Sequential()
-        refs.add(
-            Dense(
-                256,
-                input_dim=self.td.trainRefsOneHotX.shape[1],
-                name='refs',
-                activation=None))
-        refs.add(Dropout(dropout_pct))
-        refs.add(BatchNormalization())
-        refs.add(ELU())
-        refs.add(Dense(64, activation=None))
-        refs.add(Dropout(dropout_pct))
-        refs.add(BatchNormalization())
-        refs.add(ELU())
-
-        cpcs = Sequential()
-        cpcs.add(
-            Dense(
-                32,
-                input_dim=self.td.trainCpcOneHotX.shape[1],
-                name='cpcs',
-                activation=None))
-        cpcs.add(Dropout(.8))
-        cpcs.add(BatchNormalization())
-        cpcs.add(ELU())
-
-        deep = Sequential()
-
-        # Use pre-trained Word2Vec embeddings
-        embedding_layer = Embedding(self.td.w2v_runtime.embedding_weights.shape[0],
-                                    self.td.w2v_runtime.embedding_weights.shape[1],
-                                    weights=[self.td.w2v_runtime.embedding_weights],
-                                    #input_length=sequence_len,
-                                    trainable=False,
-                                    name='embed')
-        deep.add(embedding_layer)
-        '''
-        model.add(Conv1D(filters,
-                         kernel_size,
-                         padding='valid',
-                         activation='relu',
-                         strides=1))
-        model.add(MaxPooling1D(pool_size=pool_size))
-        '''
-        deep.add(LSTM(
-            lstm_size,
-            dropout=dropout_pct,
-            recurrent_dropout=dropout_pct,
-            return_sequences=False,
-            name='LSTM_1'))
-        #model.add(LSTM(256, dropout=0.2, recurrent_dropout=0.2, return_sequences=False, name='LSTM_2'))
-        deep.add(Dense(300, activation=None))
-        deep.add(Dropout(dropout_pct))
-        deep.add(BatchNormalization())
-        deep.add(ELU())
-
-        model = Sequential()
-        #model = deep
-        #model.add(concatenate([refs, deep], axis=1))
-        #model.add(keras.layers.Concatenate()([refs, deep]))
-        # this one works
-        model.add(Merge([refs, deep], mode='concat', concat_axis=1))
-        model.add(Dense(64, activation=None))
-        model.add(Dropout(dropout_pct))
-        model.add(BatchNormalization())
-        model.add(ELU())
-        model.add(Dense(1, activation='sigmoid'))
-
-        # try using different optimizers and different optimizer configs
-        model.compile(loss='binary_crossentropy',
-                      optimizer='adam',
-                      metrics=['accuracy', precision, recall, f1score])
-
-        self.tf_model = model
-        print('Done building graph.')
-        print(self.tf_model.summary())
-
-
     def train_model(self, model, batch_size, num_epochs=5):
         print('Training model.')
         model.fit(x={
@@ -223,7 +136,7 @@ class LandscapeModel:
             print('Saving model to {}'.format(model_path))
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
-            
+
             tf_model.save(model_path)
             print('Model persisted and ready for inference!')
 
@@ -251,7 +164,7 @@ class LandscapeModel:
                 'cpcs_input': cpcs_one_hot,
                 'refs_input': refs_one_hot
             })
-        
+
     def predict(self, train_data_util, text, refs, cpcs):
         '''
         '''
