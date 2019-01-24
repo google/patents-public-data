@@ -184,7 +184,7 @@ for table in sorted(table_files.keys()):
   if not header:
     header = sh.head("-n", "1", files[0]).strip()
 
-  schema = ",".join(["%s:STRING" % x for x in header.split(",")])
+  schema = ",".join(["%s:STRING" % x for x in header.split(args.field_delimiter)])
   # bq create table uploaded_paths
   bq_args = [
       "--location", args.location,
