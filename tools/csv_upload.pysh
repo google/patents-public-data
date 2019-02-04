@@ -196,16 +196,17 @@ for table in sorted(table_files.keys()):
   else:
     header_list = header.split(",")
 
-  if not header_types:
-    header_types_list = ['STRING'] * len(header_list)
+  column_types = args.column_types
+  if not column_types:
+    column_types_list = ['STRING'] * len(header_list)
   else:
-    header_types_list = header_types.split(",")
+    column_types_list = column_types.split(",")
 
-  if len(header_list) != len(header_types_list):
-    print("Number header fields and types must be equal.")
+  if len(header_list) != len(column_types_list):
+    print("Number of header fields and column types must be equal.")
     os.exit(1)
 
-  schema = ",".join([header_name + ":" + header_type.upper() for header_name, header_type in zip(header_list, header_types_list)])
+  schema = ",".join([header_name + ":" + header_type.upper() for header_name, header_type in zip(header_list, column_types_list)])
 
   # bq create table uploaded_paths
   bq_args = [
