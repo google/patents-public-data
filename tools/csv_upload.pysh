@@ -49,6 +49,7 @@ parser.add_argument("--overwrite", default=False, action="store_true", help="Ove
 parser.add_argument("--field_delimiter", default=",", help="Field delimiter between data.")
 parser.add_argument("--read_header", default=True, action="store_true", help="Set the schema from the first row of the first CSV input, else --header must be set.")
 parser.add_argument("--header", default="", help="Comma-separated header names for each column. Only for single tables.")
+parser.add_argument("--column_types", default="", help="Comma-separated types for each column. Only for single tables.")
 parser.add_argument("--location", default="US", help="Geographical location for the dataset, either US or EU. US is preferred, since JOINs must be between tables in the same region.")
 parser.add_argument("--tables", help="BigQuery destination tables. Use '{}' as a placeholder for a matching name in --sources ('project-id:dataset.{}').")
 parser.add_argument("--sources", help="CSV source file pattern. Use '{}' to generate multiple table names in --tables ('reg{}_part*.txt', '**/{}.csv').")
@@ -180,11 +181,33 @@ for table in sorted(table_files.keys()):
       uploaded_paths.append(dest + "...[dry run]")
 
   # Get the header.
+
+
+  # build header and column datatypes
   header = args.header
   if not header:
-    header = sh.head("-n", "1", files[0]).strip()
+    if args.field_delimiter == "\\t":
+      col_sep = "\t"
+    elif args.field_delimiter == "\\s":
+      col_sep = "\s"
+    else:
+      col_sep = args.field_delimiter
+    header_list = sh.head("-n", "1", files[0]).strip().split(col_sep)
+  else:
+    header_list = header.split(",")
 
-  schema = ",".join(["%s:STRING" % x for x in header.split(",")])
+  column_types = args.column_types
+  if not column_types:
+    column_types_list = ['STRING'] * len(header_list)
+  else:
+    column_types_list = column_types.split(",")
+
+  if len(header_list) != len(column_types_list):
+    print("Number of header fields and column types must be equal.")
+    os.exit(1)
+
+  schema = ",".join([header_name + ":" + header_type.upper() for header_name, header_type in zip(header_list, column_types_list)])
+
   # bq create table uploaded_paths
   bq_args = [
       "--location", args.location,
@@ -215,4 +238,3 @@ for table in sorted(table_files.keys()):
     print("Removing uploaded files %s" % uploaded_paths)
     gsutil("rm", *uploaded_paths)
     print("Done creating %s" % table)
-
