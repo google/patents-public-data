@@ -38,6 +38,7 @@ import glob
 import hashlib
 import queue
 import io
+import csv
 
 parser = argparse.ArgumentParser(description="Upload a CSV file to a BigQuery table")
 parser.add_argument("--dry_run", default=False, action="store_true", help="Do not upload.")
@@ -54,6 +55,11 @@ parser.add_argument("--location", default="US", help="Geographical location for 
 parser.add_argument("--tables", help="BigQuery destination tables. Use '{}' as a placeholder for a matching name in --sources ('project-id:dataset.{}').")
 parser.add_argument("--sources", help="CSV source file pattern. Use '{}' to generate multiple table names in --tables ('reg{}_part*.txt', '**/{}.csv').")
 args = parser.parse_args()
+
+# Argument checking.
+if not args.location in ["US", "EU"]:
+  print("--location must be US or EU")
+  ost.exit(1)
 
 # Find the source files and destinatination tables.
 sources = os.path.expanduser(args.sources)
@@ -92,7 +98,11 @@ gsutil = sh.Command(args.gsutil_bin)
 
 project_id = args.project_id
 if not project_id:
+  if not ":" in args.tables:
+    print("--tables must use project-id:dataset_name.table_name format")
+    os.exit(1)
   project_id = args.tables.split(":")[0]
+  print("Using --project_id=%s" % project_id)
 
 
 bucket = args.storage_bucket
@@ -192,9 +202,22 @@ for table in sorted(table_files.keys()):
       col_sep = "\s"
     else:
       col_sep = args.field_delimiter
-    header_list = sh.head("-n", "1", files[0]).strip().split(col_sep)
+    with open(files[0], 'r') as f:
+      header_list = next(csv.reader(f, delimiter=col_sep))
+      print(header_list)
   else:
     header_list = header.split(",")
+  # A column name must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_) and
+  # start with a letter.
+  clean_headers = []
+  for header in header_list:
+    h = re.sub('[^a-zA-Z0-9_]', '', header)
+    if re.match('^[0-9].*$', h):
+      h = "f" + h
+    clean_headers.append(h)
+  header_list = clean_headers
+
+  print("Headers: %s" % header_list)
 
   column_types = args.column_types
   if not column_types:
