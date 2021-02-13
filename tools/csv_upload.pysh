@@ -140,9 +140,13 @@ class Splitter:
     self.upload_paths = []
     self.upload_pipe = None
     self.upload_proc = None
+    self.done_pipe = queue.Queue()
 
   def data(self, data_chunk):
     # Pipe this through to the gzip and upload commands.
+    if not data_chunk:
+      self.done()
+      return
     chunk_size = len(data_chunk)
     if self.size + chunk_size > self.max_size:
       self.flush()
@@ -165,6 +169,11 @@ class Splitter:
   def done(self, *args):
     print("Splitter parent done")
     self.flush()
+    self.done_pipe.put(True)
+
+  def done_wait(self):
+    # Block until done() is finished.
+    self.done_pipe.get()
 
   def flush(self):
     print("Closing upload pipe")
@@ -184,8 +193,14 @@ for table in sorted(table_files.keys()):
     print("Copying %s to %s..." % (file, dest))
     if not args.dry_run:
       splitter = Splitter(4 * 2 ** 30, dest)  # 4G
-      tail_pipe = sh.tail("-n" "+2", file, _out=splitter.data, _out_bufsize=buf, _done=splitter.done, _bg=True)
-      tail_pipe.wait()
+      # Read each file and forward the stream to splitter.data(chunk).
+      with open(file, 'rb') as f:
+        while True:
+          chunk = f.read(buf)
+          splitter.data(chunk)
+          if not chunk:
+            break
+      splitter.done_wait()
       uploaded_paths.extend(splitter.upload_paths)
     else:
       uploaded_paths.append(dest + "...[dry run]")
@@ -195,6 +210,7 @@ for table in sorted(table_files.keys()):
 
   # build header and column datatypes
   header = args.header
+  skip_leading_rows = 0
   if not header:
     if args.field_delimiter == "\\t":
       col_sep = "\t"
@@ -205,6 +221,7 @@ for table in sorted(table_files.keys()):
     with open(files[0], 'r') as f:
       header_list = next(csv.reader(f, delimiter=col_sep))
       print(header_list)
+      skip_leading_rows = 1
   else:
     header_list = header.split(",")
   # A column name must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_) and
@@ -241,6 +258,7 @@ for table in sorted(table_files.keys()):
       "--field_delimiter", args.field_delimiter,
       "--schema", schema,
       "--allow_quoted_newlines",
+      "--skip_leading_rows", "%d" % skip_leading_rows,
       table,
       ",".join(uploaded_paths),
   ]
