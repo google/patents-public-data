@@ -50,6 +50,8 @@ the GOOGLE_APPLICATION_CREDENTIALS environmental variable.
 
 #### Setup a virtual environment and install python dependencies.
 
+Make sure you have Python 2.7 installed.
+
 Additionally, you'll likely want to work inside a python virtual environment.
 You can set one up with the following commands:
 
