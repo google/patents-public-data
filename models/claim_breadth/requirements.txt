@@ -49,7 +49,7 @@ pyasn1-modules==0.2.1
 PyHamcrest==1.9.0
 PyVCF==0.6.8
 PyYAML==3.12
-requests==2.18.4
+requests==2.31.0
 rsa==3.4.2
 six==1.11.0
 tensorboard==1.7.0
