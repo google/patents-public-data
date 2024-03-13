@@ -12,3 +12,6 @@ Currently the repo contains three examples:
 
 3. [Claim Breadth Model](https://github.com/google/patents-public-data/blob/master/models/claim_breadth/README.md): A machine learning method for estimating patent claim breadth using data from BigQuery.
 
+Other helpful resources from the community:
+
+1. [Replicable Patent Indicators](https://www.kaggle.com/code/georgeabiyounes/replicable-patent-indicators/notebook) ([paper](https://onlinelibrary.wiley.com/doi/10.1111/1467-8462.12545))
